@@ -4,10 +4,16 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.JoystickConstants;
+import edu.wpi.first.wpilibj.drive.MecanumDrive;
+
+
+
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -20,6 +26,8 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
+  private MecanumDrive m_drive;
+  private PS4Controller m_stick= new PS4Controller(JoystickConstants.driverPort);
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -72,7 +80,9 @@ ser code above as well.
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    m_drive.driveCartesian(-m_stick.getLeftY(), m_stick.getLeftX(), -m_stick.getRawAxis(2));
+  }
 
   /** This function is called once when the robot is disabled. */
   @Override

@@ -2,7 +2,7 @@ package frc.robot;
 
 
 import edu.wpi.first.wpilibj.Joystick;
-
+import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import frc.robot.commands.TeleopDriveCommand;
@@ -21,7 +21,7 @@ public class RobotContainer {
 	** Addressable Led
 	*/
 	private DriveTrain driveTrain = new DriveTrain();
-	public Joystick driverJoystick = new Joystick(Constants.JoystickConstants.driverPort);
+	public PS4Controller driverJoystick = new Joystick(Constants.JoystickConstants.driverPort);
 
 	public RobotContainer() {
 		driveTrain.setDefaultCommand(new TeleopDriveCommand(driverJoystick, driveTrain));
@@ -34,7 +34,7 @@ public class RobotContainer {
 		//new JoystickButton(driverJoystick, 3).whileHeld(new ShooterCom(shooter)); 
 		//new JoystickButton(driverJoystick, 12).whileHeld(new ShooterSolenoidCom(shooter)); 
 		
-		//new JoystickButton(driverJoystick, 8).onTrue(Commands.runOnce(()->driveTrain.changeSlowMode(),driveTrain));
+		new JoystickButton(driverJoystick, 8).onTrue(Commands.runOnce(()->driveTrain.changeSlowMode(),driveTrain));
 		//new POVButton(driverJoystick, 180).whileHeld(new IndexCom(shooter));
 		//new JoystickButton(driverJoystick, ).onTrue(changeSlowMode());
 		//new JoystickButton(driverJoystick, 7).whileHeld(new ClimbCom(climb, true)); 

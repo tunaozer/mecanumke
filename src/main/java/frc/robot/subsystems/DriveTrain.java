@@ -4,9 +4,8 @@
 
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.DemandType;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,15 +15,16 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.MecanumDriveOdometry;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelPositions;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
-import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.drive.MecanumDrive;
+import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.SPI;
 
-import edu.wpi.first.wpilibj.drive.MecanumDrive;
+
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import frc.robot.Constants;
+
 import frc.robot.Constants.JoystickConstants;
 import frc.robot.Constants.TrajectoryConstants;
 
@@ -36,49 +36,40 @@ public class DriveTrain extends SubsystemBase {
 	}
 	//private SpeedMode speedMode = SpeedMode.Default;
 
-	private WPI_TalonSRX leftMaster;
-	private WPI_TalonSRX leftSlave;
-	private WPI_TalonSRX rightMaster;
-	private WPI_TalonSRX rightSlave;
+	private WPI_VictorSPX motor_solOn;
+	private WPI_VictorSPX motor_solArka;
+	private WPI_VictorSPX motor_sagOn;
+	private WPI_VictorSPX motor_sagArka;
 
 	private MecanumDrive m_drive;
-  private Joystick m_stick= new Joystick(JoystickConstants.driverPort);
+  private PS4Controller m_stick= new PS4Controller(JoystickConstants.driverPort);
 	public final MecanumDriveOdometry m_odometry;
     public final AHRS m_gyro = new AHRS(SPI.Port.kMXP);
 	private final Field2d m_field = new Field2d();
 	public DriveTrain() {
 
-		leftMaster = new WPI_TalonSRX(Constants.DriveTrainConstants.leftMasterPort);
-		leftSlave = new WPI_TalonSRX(Constants.DriveTrainConstants.leftSlavePort);
-		rightMaster = new WPI_TalonSRX(Constants.DriveTrainConstants.rightMasterPort);
-		rightSlave = new WPI_TalonSRX(Constants.DriveTrainConstants.rightSlavePort);
+        WPI_VictorSPX motor_solOn = new WPI_VictorSPX(01);
+        WPI_VictorSPX motor_solArka = new WPI_VictorSPX(02);
+        WPI_VictorSPX motor_sagOn = new WPI_VictorSPX(03);
+        WPI_VictorSPX motor_sagArka = new WPI_VictorSPX(04);
+
+		motor_sagOn.setInverted(true);
+        motor_sagArka.setInverted(true);
 
 
 
-		m_drive = new MecanumDrive(leftMaster, leftSlave,rightMaster,rightSlave);
-		leftMaster.setInverted(Constants.DriveTrainConstants.leftMasterInvert);
-		leftSlave.setInverted(Constants.DriveTrainConstants.leftSlaveInvert);
-		rightMaster.setInverted(Constants.DriveTrainConstants.rightMasterInvert);
-		rightSlave.setInverted(Constants.DriveTrainConstants.rightSlaveInvert);
-		leftMaster.setNeutralMode(Constants.DriveTrainConstants.leftMasterBrake);
-		leftSlave.setNeutralMode(Constants.DriveTrainConstants.leftSlaveBrake);
-		rightMaster.setNeutralMode(Constants.DriveTrainConstants.rightMasterBrake);
-		rightSlave.setNeutralMode(Constants.DriveTrainConstants.rightSlaveBrake);
-		leftMaster.setSafetyEnabled(Constants.DriveTrainConstants.leftMasterSafety);
-		leftSlave.setSafetyEnabled(Constants.DriveTrainConstants.leftSlaveSafety);
-		rightMaster.setSafetyEnabled(Constants.DriveTrainConstants.rightMasterSafety);
-		rightSlave.setSafetyEnabled(Constants.DriveTrainConstants.rightSlaveSafety);
-		drive.setSafetyEnabled(Constants.DriveTrainConstants.driveSafety);
-		leftMaster.setSensorPhase(true);
-		rightMaster.setSensorPhase(true);
-
+		m_drive = new MecanumDrive(motor_solOn, motor_solArka,motor_sagOn,motor_sagArka);
+		
 		m_odometry = new MecanumDriveOdometry(TrajectoryConstants.kDriveKinematics, m_gyro.getRotation2d(), new MecanumDriveWheelPositions());
         SmartDashboard.putData("Field", m_field);
 		zeroHeading();
         resetEncoders();
 	}
 
+public void Drive(){	
+	m_drive.driveCartesian(-m_stick.getLeftY(), m_stick.getLeftX(), -m_stick.getRawAxis(2));
 
+}
 	@Override
 	public void periodic() {
 		
@@ -93,8 +84,10 @@ public class DriveTrain extends SubsystemBase {
         m_gyro.reset();
     }
     public void resetEncoders() {
-        leftMaster.setSelectedSensorPosition(0);
-        rightMaster.setSelectedSensorPosition(0);
+        motor_solOn.setSelectedSensorPosition(0);
+        motor_sagOn.setSelectedSensorPosition(0);
+		motor_sagArka.setSelectedSensorPosition(0);
+        motor_solArka.setSelectedSensorPosition(0);
     }
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
       2.0, 2.0, Math.PI / 2.0, Rotation2d.fromDegrees(45.0));
@@ -122,30 +115,26 @@ double angular = chassisSpeeds.omegaRadiansPerSecond;
 
  
 	public double getRightSlaveEncoderDistance() {
-        return rightSlave.getSelectedSensorPosition()
+        return motor_sagArka.getSelectedSensorPosition()
                 * (1.0 / TrajectoryConstants.kEncoderCPR)
                 * (Math.PI * TrajectoryConstants.kWheelDiameterMeters);
     }
 
     public double getLeftSlaveEncoderDistance() {
-        return leftSlave.getSelectedSensorPosition()
+        return motor_solArka.getSelectedSensorPosition()
                 * (1.0 / TrajectoryConstants.kEncoderCPR)
                 * (-Math.PI * TrajectoryConstants.kWheelDiameterMeters);
     }
     public double getRightMasterEncoderDistance() {
-      return rightMaster.getSelectedSensorPosition()
+      return motor_sagOn.getSelectedSensorPosition()
               * (1.0 / TrajectoryConstants.kEncoderCPR)
               * (Math.PI * TrajectoryConstants.kWheelDiameterMeters);
   }
   public double getLeftMasterEncoderDistance() {
-    return leftMaster.getSelectedSensorPosition()
+    return motor_solOn.getSelectedSensorPosition()
             * (1.0 / TrajectoryConstants.kEncoderCPR)
             * (Math.PI * TrajectoryConstants.kWheelDiameterMeters);
 }
-
-	double Deadband(double i){
-		return ((i >= +0.09) ? i : ((i <= -0.09) ? i : 0));
-	}
 	public void changeSlowMode(){
 		if (isSlowMode){
 			isSlowMode = false;

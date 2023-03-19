@@ -40,10 +40,7 @@ public final static   MecanumDriveKinematics kDriveKinematics = new MecanumDrive
     }
     public static final class DriveTrainConstants{
         // Port Constants
-        public static final int leftMasterPort = 4;
-        public static final int leftSlavePort = 3;
-        public static final int rightMasterPort = 2;
-        public static final int rightSlavePort = 1;
+
         // Invert Constants
         public static final InvertType leftMasterInvert = InvertType.None;
         public static final InvertType leftSlaveInvert = InvertType.None;
